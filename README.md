@@ -6,7 +6,7 @@
 
 ### [Framework描述](https://github.com/OS-Q/N15/wiki) 
 
-[Framework N15](https://github.com/OS-Q/N15) 用于支持ESP32 Arduino平台
+[Framework N15](https://github.com/OS-Q/N15) 用于支持ESP32平台运行 Arduino，本仓库针对自动化导入编程进行优化，可能会牺牲部分可阅读性，学习使用本资源细节建议参考原工程  https://github.com/espressif/arduino-esp32
 
 
 ### [关联资源](https://github.com/OS-Q/)
@@ -15,8 +15,6 @@
 *   [Framework N17](https://github.com/OS-Q/N16)
 *   [Framework N16](https://github.com/OS-Q/N16)
 *   [Framework N14](https://github.com/OS-Q/N14)
- *  [ M5](https://github.com/OS-Q/M5) 
- *  [ M4](https://github.com/OS-Q/M4) 
 
 
 ### [OS-Q = Open Solutions | Open Source |  Operating System ](http://www.OS-Q.com/N15)
