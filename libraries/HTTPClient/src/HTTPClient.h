@@ -197,7 +197,7 @@ protected:
     };
 
     bool beginInternal(String url, const char* expectedProtocol);
-    void disconnect();
+    void disconnect(bool preserveClient = false);
     void clear();
     int returnError(int error);
     bool connect(void);
@@ -217,7 +217,7 @@ protected:
     String _host;
     uint16_t _port = 0;
     int32_t _connectTimeout = -1;
-    bool _reuse = false;
+    bool _reuse = true;
     uint16_t _tcpTimeout = HTTPCLIENT_DEFAULT_TCP_TIMEOUT;
     bool _useHTTP10 = false;
     bool _secure = false;
