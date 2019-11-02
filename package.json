@@ -1,5 +1,5 @@
 {
-    "description": "Arduino Wiring-based Framework (ESP32 Core)",
+    "description": "Arduino Wiring-based Framework N15",
     "name": "framework-N15",
     "system": "*",
     "url": "https://github.com/espressif/arduino-esp32",
