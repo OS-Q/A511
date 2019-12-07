@@ -1,7 +1,11 @@
 {
-    "description": "Arduino Wiring-based Framework N15",
     "name": "framework-N15",
+    "description": "Q Framework N15 For ESP32 Arduino",
     "system": "*",
     "url": "https://github.com/espressif/arduino-esp32",
-    "version": "1.0.0"
+    "version":"1.0.0",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/OS-Q/N15.git"
+    }
 }
