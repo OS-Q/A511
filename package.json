@@ -1,11 +1,15 @@
 {
-    "name": "A52",
-    "description": "Q Framework A52 For ESP32 Arduino",
-    "system": "*",
-    "url": "https://github.com/espressif/arduino-esp32",
-    "version":"1.0.0",
-    "repository": {
-      "type": "git",
-      "url": "https://github.com/OS-Q/A52.git"
-    }
+  "name": "A52",
+  "version": "3.10005.20210308",
+  "description": "Arduino Wiring-based Framework for Espressif ESP32 microcontrollers",
+  "keywords": [
+    "framework",
+    "arduino",
+    "espressif",
+    "esp32"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/espressif/arduino-esp32"
+  }
 }
