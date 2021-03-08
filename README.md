@@ -1,13 +1,9 @@
-﻿# [Framework N15](https://github.com/OS-Q/N15)
+﻿# [A52](https://github.com/OS-Q/A52)
 
 [![sites](http://182.61.61.133/link/resources/OSQ.png)](http://www.OS-Q.com)
 
-#### 关于系统架构：[OS-Q](https://github.com/OS-Q)
-#### 归属边缘体系：[EDGE-Q](https://github.com/EDGE-Q)
+### [简介](https://github.com/OS-Q/A52/wiki)
 
-### [Framework 描述](https://github.com/OS-Q/N15/wiki) 
+[A52](https://github.com/OS-Q/A52) 应用[ESP32 Arduino](https://github.com/espressif/arduino-esp32) 框架
 
-[Framework N15](https://github.com/OS-Q/N15) 基于PlatformIO平台，应用[ESP32  Arduino](https://github.com/espressif/arduino-esp32) 框架
-
-### [OS-Q = Open Solutions | Open Source |  Operating System ](http://www.OS-Q.com/N15)
-####  2019-9-6
+### [Q = (OpenSource & OperatingSystem) ](http://www.OS-Q.com)
