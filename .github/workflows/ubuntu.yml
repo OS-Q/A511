@@ -47,5 +47,5 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: ubuntu-build-A52
+          name: ubuntu-build-A52A
           path: ${{ matrix.tests }}/build

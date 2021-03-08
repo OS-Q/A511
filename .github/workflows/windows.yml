@@ -45,5 +45,5 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: windows-build-A52
+          name: windows-build-A52A
           path: ${{ matrix.tests }}/build
