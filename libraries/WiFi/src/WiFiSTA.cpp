@@ -71,6 +71,7 @@ static bool sta_config_equal(const wifi_config_t& lhs, const wifi_config_t& rhs)
 
 bool WiFiSTAClass::_autoReconnect = true;
 bool WiFiSTAClass::_useStaticIp = false;
+String WiFiSTAClass::_hostname = "esp32-arduino";
 
 static wl_status_t _sta_status = WL_NO_SHIELD;
 static EventGroupHandle_t _sta_status_group = NULL;
@@ -224,8 +225,8 @@ wl_status_t WiFiSTAClass::begin()
 }
 
 /**
- * will force a disconnect an then start reconnecting to AP
- * @return ok
+ * will force a disconnect and then start reconnecting to AP
+ * @return true when successful
  */
 bool WiFiSTAClass::reconnect()
 {
@@ -284,7 +285,7 @@ bool WiFiSTAClass::config(IPAddress local_ip, IPAddress gateway, IPAddress subne
 
     tcpip_adapter_ip_info_t info;
 
-    if(local_ip != (uint32_t)0x00000000){
+    if(local_ip != (uint32_t)0x00000000 && local_ip != INADDR_NONE){
         info.ip.addr = static_cast<uint32_t>(local_ip);
         info.gw.addr = static_cast<uint32_t>(gateway);
         info.netmask.addr = static_cast<uint32_t>(subnet);
@@ -320,13 +321,13 @@ bool WiFiSTAClass::config(IPAddress local_ip, IPAddress gateway, IPAddress subne
     ip_addr_t d;
     d.type = IPADDR_TYPE_V4;
 
-    if(dns1 != (uint32_t)0x00000000) {
+    if(dns1 != (uint32_t)0x00000000 && dns1 != INADDR_NONE) {
         // Set DNS1-Server
         d.u_addr.ip4.addr = static_cast<uint32_t>(dns1);
         dns_setserver(0, &d);
     }
 
-    if(dns2 != (uint32_t)0x00000000) {
+    if(dns2 != (uint32_t)0x00000000 && dns2 != INADDR_NONE) {
         // Set DNS2-Server
         d.u_addr.ip4.addr = static_cast<uint32_t>(dns2);
         dns_setserver(1, &d);
@@ -337,7 +338,7 @@ bool WiFiSTAClass::config(IPAddress local_ip, IPAddress gateway, IPAddress subne
 
 /**
  * is STA interface connected?
- * @return true if STA is connected to an AD
+ * @return true if STA is connected to an AP
  */
 bool WiFiSTAClass::isConnected()
 {
@@ -488,8 +489,8 @@ IPAddress WiFiSTAClass::dnsIP(uint8_t dns_no)
     if(WiFiGenericClass::getMode() == WIFI_MODE_NULL){
         return IPAddress();
     }
-    ip_addr_t dns_ip = dns_getserver(dns_no);
-    return IPAddress(dns_ip.u_addr.ip4.addr);
+    const ip_addr_t* dns_ip = dns_getserver(dns_no);
+    return IPAddress(dns_ip->u_addr.ip4.addr);
 }
 
 /**
@@ -636,6 +637,7 @@ const char * WiFiSTAClass::getHostname()
  */
 bool WiFiSTAClass::setHostname(const char * hostname)
 {
+    _hostname = hostname;
     if(WiFiGenericClass::getMode() == WIFI_MODE_NULL){
         return false;
     }

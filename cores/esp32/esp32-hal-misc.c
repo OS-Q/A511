@@ -1,4 +1,4 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,10 +44,12 @@ float temperatureRead()
     return (temprature_sens_read() - 32) / 1.8;
 }
 
-void yield()
+void __yield()
 {
     vPortYield();
 }
+
+void yield() __attribute__ ((weak, alias("__yield")));
 
 #if CONFIG_AUTOSTART_ARDUINO
 

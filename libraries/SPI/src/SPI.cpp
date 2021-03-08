@@ -1,23 +1,16 @@
-/* 
- SPI.cpp - SPI library for esp8266
-
- Copyright (c) 2015 Hristo Gochkov. All rights reserved.
- This file is part of the esp8266 core for Arduino environment.
- 
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
-
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "SPI.h"
 
@@ -85,7 +78,7 @@ void SPIClass::setHwCs(bool use)
     if(use && !_use_hw_ss) {
         spiAttachSS(_spi, 0, _ss);
         spiSSEnable(_spi);
-    } else if(_use_hw_ss) {
+    } else if(!use && _use_hw_ss) {
         spiSSDisable(_spi);
         spiDetachSS(_spi, _ss);
     }
@@ -238,7 +231,7 @@ void SPIClass::writePixels(const void * data, uint32_t size)
  * @param out  uint8_t * output buffer. can be NULL for Write Only operation
  * @param size uint32_t
  */
-void SPIClass::transferBytes(uint8_t * data, uint8_t * out, uint32_t size)
+void SPIClass::transferBytes(const uint8_t * data, uint8_t * out, uint32_t size)
 {
     if(_inTransaction){
         return spiTransferBytesNL(_spi, data, out, size);
@@ -251,7 +244,7 @@ void SPIClass::transferBytes(uint8_t * data, uint8_t * out, uint32_t size)
  * @param size uint8_t  max for size is 64Byte
  * @param repeat uint32_t
  */
-void SPIClass::writePattern(uint8_t * data, uint8_t size, uint32_t repeat)
+void SPIClass::writePattern(const uint8_t * data, uint8_t size, uint32_t repeat)
 {
     if(size > 64) {
         return;    //max Hardware FIFO
@@ -272,12 +265,12 @@ void SPIClass::writePattern(uint8_t * data, uint8_t size, uint32_t repeat)
     }
 }
 
-void SPIClass::writePattern_(uint8_t * data, uint8_t size, uint8_t repeat)
+void SPIClass::writePattern_(const uint8_t * data, uint8_t size, uint8_t repeat)
 {
     uint8_t bytes = (size * repeat);
     uint8_t buffer[64];
     uint8_t * bufferPtr = &buffer[0];
-    uint8_t * dataPtr;
+    const uint8_t * dataPtr;
     uint8_t dataSize = bytes;
     for(uint8_t i = 0; i < repeat; i++) {
         dataSize = size;

@@ -1,29 +1,25 @@
-/* 
-  SPI.h - SPI library for esp8266
+// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-  Copyright (c) 2015 Hristo Gochkov. All rights reserved.
-  This file is part of the esp8266 core for Arduino environment.
- 
-  This library is free software; you can redistribute it and/or
-  modify it under the terms of the GNU Lesser General Public
-  License as published by the Free Software Foundation; either
-  version 2.1 of the License, or (at your option) any later version.
-
-  This library is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-  Lesser General Public License for more details.
-
-  You should have received a copy of the GNU Lesser General Public
-  License along with this library; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-*/
 #ifndef _SPI_H_INCLUDED
 #define _SPI_H_INCLUDED
 
 #include <stdlib.h>
 #include "pins_arduino.h"
 #include "esp32-hal-spi.h"
+
+#define SPI_HAS_TRANSACTION
 
 class SPISettings
 {
@@ -48,7 +44,7 @@ private:
     uint32_t _div;
     uint32_t _freq;
     bool _inTransaction;
-    void writePattern_(uint8_t * data, uint8_t size, uint8_t repeat);
+    void writePattern_(const uint8_t * data, uint8_t size, uint8_t repeat);
 
 public:
     SPIClass(uint8_t spi_bus=HSPI);
@@ -70,7 +66,7 @@ public:
     uint16_t transfer16(uint16_t data);
     uint32_t transfer32(uint32_t data);
   
-    void transferBytes(uint8_t * data, uint8_t * out, uint32_t size);
+    void transferBytes(const uint8_t * data, uint8_t * out, uint32_t size);
     void transferBits(uint32_t data, uint32_t * out, uint8_t bits);
 
     void write(uint8_t data);
@@ -78,7 +74,7 @@ public:
     void write32(uint32_t data);
     void writeBytes(const uint8_t * data, uint32_t size);
     void writePixels(const void * data, uint32_t size);//ili9341 compatible
-    void writePattern(uint8_t * data, uint8_t size, uint32_t repeat);
+    void writePattern(const uint8_t * data, uint8_t size, uint32_t repeat);
 
     spi_t * bus(){ return _spi; }
 };

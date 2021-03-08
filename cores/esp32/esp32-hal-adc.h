@@ -1,21 +1,16 @@
-/*
- Arduino.h - Main include file for the Arduino SDK
- Copyright (c) 2005-2013 Arduino Team.  All right reserved.
+// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
-
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General Public
- License along with this library; if not, write to the Free Software
- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
- */
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #ifndef MAIN_ESP32_HAL_ADC_H_
 #define MAIN_ESP32_HAL_ADC_H_
@@ -55,24 +50,6 @@ void analogReadResolution(uint8_t bits);
 void analogSetWidth(uint8_t bits);
 
 /*
- * Set number of cycles per sample
- * Default is 8 and seems to do well
- * Range is 1 - 255
- * */
-void analogSetCycles(uint8_t cycles);
-
-/*
- * Set number of samples in the range.
- * Default is 1
- * Range is 1 - 255
- * This setting splits the range into
- * "samples" pieces, which could look
- * like the sensitivity has been multiplied
- * that many times
- * */
-void analogSetSamples(uint8_t samples);
-
-/*
  * Set the divider for the ADC clock.
  * Default is 1
  * Range is 1 - 255
@@ -98,33 +75,19 @@ void analogSetPinAttenuation(uint8_t pin, adc_attenuation_t attenuation);
 int hallRead();
 
 /*
- * Non-Blocking API (almost)
- *
- * Note: ADC conversion can run only for single pin at a time.
- *       That means that if you want to run ADC on two pins on the same bus,
- *       you need to run them one after another. Probably the best use would be
- *       to start conversion on both buses in parallel.
- * */
-
-/*
  * Attach pin to ADC (will also clear any other analog mode that could be on)
  * */
 bool adcAttachPin(uint8_t pin);
 
 /*
- * Start ADC conversion on attached pin's bus
+ * Set pin to use for ADC calibration if the esp is not already calibrated (25, 26 or 27)
  * */
-bool adcStart(uint8_t pin);
+void analogSetVRefPin(uint8_t pin);
 
 /*
- * Check if conversion on the pin's ADC bus is currently running
+ * Get MilliVolts value for pin
  * */
-bool adcBusy(uint8_t pin);
-
-/*
- * Get the result of the conversion (will wait if it have not finished)
- * */
-uint16_t adcEnd(uint8_t pin);
+uint32_t analogReadMilliVolts(uint8_t pin);
 
 #ifdef __cplusplus
 }

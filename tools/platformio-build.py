@@ -1,3 +1,17 @@
+# Copyright 2014-present PlatformIO <contact@platformio.org>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 """
 Arduino
 
@@ -17,11 +31,11 @@ from SCons.Script import DefaultEnvironment
 env = DefaultEnvironment()
 platform = env.PioPlatform()
 
-FRAMEWORK_DIR = platform.get_package_dir("A52")
+FRAMEWORK_DIR = platform.get_package_dir("framework-arduinoespressif32")
 assert isdir(FRAMEWORK_DIR)
 
 env.Append(
-    ASFLAGS=["-x", "assembler-with-cpp"],
+    ASFLAGS=["-x", "assembler-with-cpp", "-mlongcalls"],
 
     CFLAGS=[
         "-std=gnu99",
@@ -62,7 +76,7 @@ env.Append(
         "-Wl,--undefined=uxTopUsedPriority",
         "-Wl,--gc-sections",
         "-Wl,-EL",
-        "-T", "esp32.common.ld",
+        "-T", "esp32.project.ld",
         "-T", "esp32.rom.ld",
         "-T", "esp32.peripherals.ld",
         "-T", "esp32.rom.libgcc.ld",
@@ -94,6 +108,7 @@ env.Append(
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "coap"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "console"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "driver"),
+        join(FRAMEWORK_DIR, "tools", "sdk", "include", "efuse"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "esp-tls"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "esp32"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "esp_adc_cal"),
@@ -101,7 +116,10 @@ env.Append(
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "esp_http_client"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "esp_http_server"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "esp_https_ota"),
+        join(FRAMEWORK_DIR, "tools", "sdk", "include", "esp_https_server"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "esp_ringbuf"),
+        join(FRAMEWORK_DIR, "tools", "sdk", "include", "esp_websocket_client"),
+        join(FRAMEWORK_DIR, "tools", "sdk", "include", "espcoredump"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "ethernet"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "expat"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "fatfs"),
@@ -120,6 +138,7 @@ env.Append(
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "mqtt"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "newlib"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "nghttp"),
+        join(FRAMEWORK_DIR, "tools", "sdk", "include", "nimble"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "nvs_flash"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "openssl"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "protobuf-c"),
@@ -133,6 +152,7 @@ env.Append(
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "tcp_transport"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "tcpip_adapter"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "ulp"),
+        join(FRAMEWORK_DIR, "tools", "sdk", "include", "unity"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "vfs"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "wear_levelling"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "wifi_provisioning"),
@@ -151,7 +171,7 @@ env.Append(
     ],
 
     LIBS=[
-        "-lgcc", "-lesp32", "-lphy", "-lesp_http_client", "-lmbedtls", "-lrtc", "-lesp_http_server", "-lbtdm_app", "-lspiffs", "-lbootloader_support", "-lmdns", "-lnvs_flash", "-lfatfs", "-lpp", "-lnet80211", "-ljsmn", "-lface_detection", "-llibsodium", "-lvfs", "-ldl_lib", "-llog", "-lfreertos", "-lcxx", "-lsmartconfig_ack", "-lxtensa-debug-module", "-lheap", "-ltcpip_adapter", "-lmqtt", "-lulp", "-lfd", "-lfb_gfx", "-lnghttp", "-lprotocomm", "-lsmartconfig", "-lm", "-lethernet", "-limage_util", "-lc_nano", "-lsoc", "-ltcp_transport", "-lc", "-lmicro-ecc", "-lface_recognition", "-ljson", "-lwpa_supplicant", "-lmesh", "-lesp_https_ota", "-lwpa2", "-lexpat", "-llwip", "-lwear_levelling", "-lapp_update", "-ldriver", "-lbt", "-lespnow", "-lcoap", "-lasio", "-lnewlib", "-lconsole", "-lapp_trace", "-lesp32-camera", "-lhal", "-lprotobuf-c", "-lsdmmc", "-lcore", "-lpthread", "-lcoexist", "-lfreemodbus", "-lspi_flash", "-lesp-tls", "-lwpa", "-lwifi_provisioning", "-lwps", "-lesp_adc_cal", "-lesp_event", "-lopenssl", "-lesp_ringbuf", "-lfr", "-lstdc++"
+        "-lgcc", "-lapp_trace", "-llibsodium", "-lbt", "-lesp-tls", "-lmdns", "-lconsole", "-ljsmn", "-lesp_ringbuf", "-lpthread", "-ldriver", "-ldetection", "-lsoc", "-lc", "-lmesh", "-lwpa2", "-ljson", "-ldl", "-lwear_levelling", "-lmicro-ecc", "-lcoexist", "-lface_detection", "-lnvs_flash", "-lwifi_provisioning", "-lfr", "-lnghttp", "-lesp32", "-lnet80211", "-lesp_http_server", "-ltcp_transport", "-llog", "-lespnow", "-lhal", "-lmqtt", "-lesp_websocket_client", "-lesp_http_client", "-lvfs", "-lbtdm_app", "-lapp_update", "-lpe", "-lprotocomm", "-lwps", "-lsdmmc", "-lesp_adc_cal", "-lwpa", "-lefuse", "-lcoap", "-lsmartconfig", "-limage_util", "-lspiffs", "-lulp", "-lunity", "-lface_recognition", "-lesp_https_server", "-lethernet", "-lspi_flash", "-lpp", "-lexpat", "-lfatfs", "-ltcpip_adapter", "-llwip", "-lcxx", "-lfreertos", "-lesp32-camera", "-lmbedtls", "-ldetection_cat_face", "-lm", "-lc_nano", "-lesp_event", "-lnewlib", "-lcore", "-lopenssl", "-lsmartconfig_ack", "-lwpa_supplicant", "-lbootloader_support", "-lasio", "-lesp_https_ota", "-lod", "-lespcoredump", "-lheap", "-lrtc", "-lprotobuf-c", "-lfb_gfx", "-lfreemodbus", "-lfd", "-lphy", "-lxtensa-debug-module", "-lstdc++"
     ],
 
     LIBSOURCE_DIRS=[
@@ -165,22 +185,37 @@ env.Append(
     ]
 )
 
+if not env.BoardConfig().get("build.ldscript", ""):
+    env.Replace(LDSCRIPT_PATH=env.BoardConfig().get("build.arduino.ldscript", ""))
+
+#
+# Add PSRAM-specific libraries
+#
+
+flatten_cppdefines = env.Flatten(env["CPPDEFINES"])
+if "BOARD_HAS_PSRAM" in flatten_cppdefines:
+    env.Append(LIBS=["c-psram-workaround", "m-psram-workaround"])
+
 #
 # Target: Build Core Library
 #
 
 libs = []
 
+variants_dir = join(FRAMEWORK_DIR, "variants")
+
+if "build.variants_dir" in env.BoardConfig():
+    variants_dir = join("$PROJECT_DIR", env.BoardConfig().get("build.variants_dir"))
+
 if "build.variant" in env.BoardConfig():
     env.Append(
         CPPPATH=[
-            join(FRAMEWORK_DIR, "variants",
-                 env.BoardConfig().get("build.variant"))
+            join(variants_dir, env.BoardConfig().get("build.variant"))
         ]
     )
     libs.append(env.BuildLibrary(
         join("$BUILD_DIR", "FrameworkArduinoVariant"),
-        join(FRAMEWORK_DIR, "variants", env.BoardConfig().get("build.variant"))
+        join(variants_dir, env.BoardConfig().get("build.variant"))
     ))
 
 envsafe = env.Clone()
@@ -197,7 +232,9 @@ env.Prepend(LIBS=libs)
 #
 
 fwpartitions_dir = join(FRAMEWORK_DIR, "tools", "partitions")
-partitions_csv = env.BoardConfig().get("build.partitions", "default.csv")
+partitions_csv = env.BoardConfig().get("build.arduino.partitions", "default.csv")
+if "build.partitions" in env.BoardConfig():
+    partitions_csv = env.BoardConfig().get("build.partitions")
 env.Replace(
     PARTITIONS_TABLE_CSV=abspath(
         join(fwpartitions_dir, partitions_csv) if isfile(

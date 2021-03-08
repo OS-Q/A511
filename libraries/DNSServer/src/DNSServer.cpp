@@ -1,7 +1,27 @@
+// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "DNSServer.h"
 #include <lwip/def.h>
 #include <Arduino.h>
 
+// #define DEBUG_ESP_DNS
+#ifdef DEBUG_ESP_PORT
+#define DEBUG_OUTPUT DEBUG_ESP_PORT
+#else
+#define DEBUG_OUTPUT Serial
+#endif
 
 DNSServer::DNSServer()
 {
@@ -184,6 +204,11 @@ void DNSServer::replyWithIP()
   _udp.write((unsigned char*) &answerIPv4, 2 );
   _udp.write(_resolvedIP, sizeof(_resolvedIP)); // The IP address to return
   _udp.endPacket();
+
+  #ifdef DEBUG_ESP_DNS
+    DEBUG_OUTPUT.printf("DNS responds: %s for %s\n",
+            IPAddress(_resolvedIP).toString().c_str(), getDomainNameWithoutWwwPrefix().c_str() );
+  #endif  
 }
 
 void DNSServer::replyWithCustomCode()

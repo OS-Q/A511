@@ -1,4 +1,4 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 #include "esp32-hal.h"
 #include "lwip/apps/sntp.h"
+#include "tcpip_adapter.h"
 
 static void setTimeZone(long offset, int daylight)
 {
@@ -45,6 +46,7 @@ static void setTimeZone(long offset, int daylight)
  * */
 void configTime(long gmtOffset_sec, int daylightOffset_sec, const char* server1, const char* server2, const char* server3)
 {
+    tcpip_adapter_init();  // Should not hurt anything if already inited
     if(sntp_enabled()){
         sntp_stop();
     }
@@ -62,6 +64,7 @@ void configTime(long gmtOffset_sec, int daylightOffset_sec, const char* server1,
  * */
 void configTzTime(const char* tz, const char* server1, const char* server2, const char* server3)
 {
+    tcpip_adapter_init();  // Should not hurt anything if already inited
     if(sntp_enabled()){
         sntp_stop();
     }

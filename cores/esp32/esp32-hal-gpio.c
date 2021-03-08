@@ -1,4 +1,4 @@
-// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -59,8 +59,8 @@ const DRAM_ATTR esp32_gpioMux_t esp32_gpioMux[GPIO_PIN_COUNT]={
     {0, -1, -1, -1},
     {0, -1, -1, -1},
     {0, -1, -1, -1},
-    {0x1c, 9, 4, 9},
-    {0x20, 8, 5, 8},
+    {0x1c, 9, 4, 8},
+    {0x20, 8, 5, 9},
     {0x14, 4, 6, -1},
     {0x18, 5, 7, -1},
     {0x04, 0, 0, -1},
