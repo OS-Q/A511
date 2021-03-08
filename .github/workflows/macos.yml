@@ -21,8 +21,7 @@ jobs:
         python-version: [3.7]
         tests:
           - "tests/blink"
-          - "tests/internal-libs"
-
+          - "tests/wifiscan"
 
     steps:
       - uses: actions/checkout@v2
