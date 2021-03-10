@@ -5,6 +5,8 @@
 [![Build Status](https://github.com/OS-Q/A52A/workflows/macos/badge.svg)](https://github.com/OS-Q/A52A/actions/workflows/macos.yml)
 [![Build Status](https://github.com/OS-Q/A52A/workflows/ubuntu/badge.svg)](https://github.com/OS-Q/A52A/actions/workflows/ubuntu.yml)
 [![Build Status](https://github.com/OS-Q/A52A/workflows/windows/badge.svg)](https://github.com/OS-Q/A52A/actions/workflows/windows.yml)
+[![Build Status](https://github.com/OS-Q/A52A/workflows/PlatformIO/badge.svg)](https://github.com/OS-Q/A52A/actions/workflows/PlatformIO.yml)
+
 ### [简介](https://github.com/OS-Q/A52A/wiki)
 
 [A52A](https://github.com/OS-Q/A52A) 链接官方 [Arduino](https://github.com/espressif/arduino-esp32) 资源
