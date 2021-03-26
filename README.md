@@ -1,11 +1,7 @@
 ﻿# [A52A](https://github.com/OS-Q/A52A)
 
-[![sites](http://182.61.61.133/link/resources/OSQ.png)](http://www.OS-Q.com)
 
-[![Build Status](https://github.com/OS-Q/A52A/workflows/macos/badge.svg)](https://github.com/OS-Q/A52A/actions/workflows/macos.yml)
-[![Build Status](https://github.com/OS-Q/A52A/workflows/ubuntu/badge.svg)](https://github.com/OS-Q/A52A/actions/workflows/ubuntu.yml)
-[![Build Status](https://github.com/OS-Q/A52A/workflows/windows/badge.svg)](https://github.com/OS-Q/A52A/actions/workflows/windows.yml)
-[![Build Status](https://github.com/OS-Q/A52A/workflows/PIO/badge.svg)](https://github.com/OS-Q/A52A/actions/workflows/platformio.yml)
+[![Build Status](https://travis-ci.org/OS-Q/A52A.svg?branch=master)](https://travis-ci.org/OS-Q/A52A) ![](https://github.com/OS-Q/A52A/workflows/Arduino/badge.svg)
 
 ### [简介](https://github.com/OS-Q/A52A/wiki)
 
