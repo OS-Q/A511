@@ -1,5 +1,3 @@
-# Extends: https://github.com/platformio/platform-espressif32/blob/develop/builder/main.py
-
 from os.path import abspath, isdir, isfile, join
 
 from SCons.Script import DefaultEnvironment
@@ -7,7 +5,7 @@ from SCons.Script import DefaultEnvironment
 env = DefaultEnvironment()
 platform = env.PioPlatform()
 
-FRAMEWORK_DIR = platform.get_package_dir("E52A")
+FRAMEWORK_DIR = platform.get_package_dir("A52A")
 assert isdir(FRAMEWORK_DIR)
 
 env.Append(
@@ -75,7 +73,7 @@ env.Append(
     ],
 
     CPPPATH=[
-       join(FRAMEWORK_DIR, "tools", "sdk", "include", "config"),
+        join(FRAMEWORK_DIR, "tools", "sdk", "include", "config"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "app_trace"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "app_update"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "asio"),
