@@ -1,3 +1,29 @@
+# Copyright 2014-present PlatformIO <contact@platformio.org>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""
+Arduino
+
+Arduino Wiring-based Framework allows writing cross-platform software to
+control devices attached to a wide range of Arduino boards to create all
+kinds of creative coding, interactive objects, spaces or physical experiences.
+
+http://arduino.cc/en/Reference/HomePage
+"""
+
+# Extends: https://github.com/platformio/platform-espressif32/blob/develop/builder/main.py
+
 from os.path import abspath, isdir, isfile, join
 
 from SCons.Script import DefaultEnvironment
@@ -5,7 +31,7 @@ from SCons.Script import DefaultEnvironment
 env = DefaultEnvironment()
 platform = env.PioPlatform()
 
-FRAMEWORK_DIR = platform.get_package_dir("A511")
+FRAMEWORK_DIR = platform.get_package_dir("framework-arduinoespressif32")
 assert isdir(FRAMEWORK_DIR)
 
 env.Append(
@@ -73,7 +99,7 @@ env.Append(
     ],
 
     CPPPATH=[
-        join(FRAMEWORK_DIR, "tools", "sdk", "include", "config"),
+       join(FRAMEWORK_DIR, "tools", "sdk", "include", "config"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "app_trace"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "app_update"),
         join(FRAMEWORK_DIR, "tools", "sdk", "include", "asio"),
@@ -144,7 +170,7 @@ env.Append(
     ],
 
     LIBS=[
-        "-lgcc", "-ltcp_transport", "-lc", "-llog", "-lapp_update", "-llibsodium", "-lfatfs", "-lsmartconfig", "-lfd", "-lcore", "-limage_util", "-lpe", "-lulp", "-lsdmmc", "-lesp32", "-lesp_https_server", "-lasio", "-lesp_event", "-lfr", "-llwip", "-lmicro-ecc", "-ldetection_cat_face", "-lbootloader_support", "-lesp_http_server", "-lethernet", "-lpthread", "-lfreertos", "-lapp_trace", "-ljson", "-lface_recognition", "-ldl", "-lfreemodbus", "-lnvs_flash", "-lhal", "-lspiffs", "-lmdns", "-lmqtt", "-lunity", "-lheap", "-lsoc", "-lefuse", "-ldetection", "-lcoap", "-lcxx", "-lfb_gfx", "-lesp_websocket_client", "-lprotocomm", "-lwear_levelling", "-lesp-tls", "-lnet80211", "-lnghttp", "-lmbedtls", "-ltcpip_adapter", "-lespnow", "-lespcoredump", "-ljsmn", "-lc_nano", "-lesp_ringbuf", "-lpp", "-lexpat", "-lm", "-lface_detection", "-lmesh", "-lxtensa-debug-module", "-lrtc", "-lphy", "-ldriver", "-lod", "-lopenssl", "-lwpa", "-lwifi_provisioning", "-lwpa_supplicant", "-lesp_http_client", "-lnewlib", "-lconsole", "-lesp_https_ota", "-lprotobuf-c", "-lesp_adc_cal", "-lcoexist", "-lwps", "-lesp32-camera", "-lbtdm_app", "-lwpa2", "-lvfs", "-lsmartconfig_ack", "-lspi_flash", "-lbt", "-lstdc++"
+        "-lgcc", "-lesp_websocket_client", "-lwpa2", "-ldetection", "-lesp_https_server", "-lwps", "-lhal", "-lconsole", "-lpe", "-lsoc", "-lsdmmc", "-lpthread", "-llog", "-lesp_http_client", "-ljson", "-lmesh", "-lesp32-camera", "-lnet80211", "-lwpa_supplicant", "-lc", "-lmqtt", "-lcxx", "-lesp_https_ota", "-lulp", "-lefuse", "-lpp", "-lmdns", "-lbt", "-lwpa", "-lspiffs", "-lheap", "-limage_util", "-lunity", "-lrtc", "-lmbedtls", "-lface_recognition", "-lnghttp", "-ljsmn", "-lopenssl", "-lcore", "-lfatfs", "-lm", "-lprotocomm", "-lsmartconfig", "-lxtensa-debug-module", "-ldl", "-lesp_event", "-lesp-tls", "-lfd", "-lespcoredump", "-lesp_http_server", "-lfr", "-lsmartconfig_ack", "-lwear_levelling", "-ltcp_transport", "-llwip", "-lphy", "-lvfs", "-lcoap", "-lesp32", "-llibsodium", "-lbootloader_support", "-ldriver", "-lcoexist", "-lasio", "-lod", "-lmicro-ecc", "-lesp_ringbuf", "-ldetection_cat_face", "-lapp_update", "-lespnow", "-lface_detection", "-lapp_trace", "-lnewlib", "-lbtdm_app", "-lwifi_provisioning", "-lfreertos", "-lfreemodbus", "-lethernet", "-lnvs_flash", "-lspi_flash", "-lc_nano", "-lexpat", "-lfb_gfx", "-lprotobuf-c", "-lesp_adc_cal", "-ltcpip_adapter", "-lstdc++"
     ],
 
     LIBSOURCE_DIRS=[
