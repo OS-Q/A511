@@ -5,7 +5,7 @@ from SCons.Script import DefaultEnvironment
 env = DefaultEnvironment()
 platform = env.PioPlatform()
 
-FRAMEWORK_DIR = platform.get_package_dir("A52A")
+FRAMEWORK_DIR = platform.get_package_dir("A511")
 assert isdir(FRAMEWORK_DIR)
 
 env.Append(
