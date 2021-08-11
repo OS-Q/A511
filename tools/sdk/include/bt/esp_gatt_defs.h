@@ -50,11 +50,16 @@ extern "C" {
 #define ESP_GATT_UUID_HID_SVC                       0x1812          /* HID Service*/
 #define ESP_GATT_UUID_SCAN_PARAMETERS_SVC           0x1813          /* Scan Parameters Service*/
 #define ESP_GATT_UUID_RUNNING_SPEED_CADENCE_SVC     0x1814          /* Running Speed and Cadence Service*/
+#define ESP_GATT_UUID_Automation_IO_SVC             0x1815          /* Automation IO Service*/
 #define ESP_GATT_UUID_CYCLING_SPEED_CADENCE_SVC     0x1816          /* Cycling Speed and Cadence Service*/
 #define ESP_GATT_UUID_CYCLING_POWER_SVC             0x1818          /* Cycling Power Service*/
 #define ESP_GATT_UUID_LOCATION_AND_NAVIGATION_SVC   0x1819          /* Location and Navigation Service*/
+#define ESP_GATT_UUID_ENVIRONMENTAL_SENSING_SVC     0x181A          /* Environmental Sensing Service*/
+#define ESP_GATT_UUID_BODY_COMPOSITION              0x181B          /* Body Composition Service*/
 #define ESP_GATT_UUID_USER_DATA_SVC                 0x181C          /* User Data Service*/
 #define ESP_GATT_UUID_WEIGHT_SCALE_SVC              0x181D          /* Weight Scale Service*/
+#define ESP_GATT_UUID_BOND_MANAGEMENT_SVC           0x181E          /* Bond Management Service*/
+#define ESP_GATT_UUID_CONT_GLUCOSE_MONITOR_SVC      0x181F          /* Continuous Glucose Monitoring Service*/
 
 #define ESP_GATT_UUID_PRI_SERVICE                   0x2800
 #define ESP_GATT_UUID_SEC_SERVICE                   0x2801
@@ -278,8 +283,6 @@ typedef enum {
 #define    ESP_GATT_PERM_WRITE_ENC_MITM        (1 << 6)   /* bit 6 -  0x0040 */    /* relate to BTA_GATT_PERM_WRITE_ENC_MITM in bta/bta_gatt_api.h */
 #define    ESP_GATT_PERM_WRITE_SIGNED          (1 << 7)   /* bit 7 -  0x0080 */    /* relate to BTA_GATT_PERM_WRITE_SIGNED in bta/bta_gatt_api.h */
 #define    ESP_GATT_PERM_WRITE_SIGNED_MITM     (1 << 8)   /* bit 8 -  0x0100 */    /* relate to BTA_GATT_PERM_WRITE_SIGNED_MITM in bta/bta_gatt_api.h */
-#define    ESP_GATT_PERM_READ_AUTHORIZATION    (1 << 9)   /* bit 9 -  0x0200 */
-#define    ESP_GATT_PERM_WRITE_AUTHORIZATION   (1 << 10)  /* bit 10 - 0x0400 */
 typedef uint16_t esp_gatt_perm_t;
 
 /* relate to BTA_GATT_CHAR_PROP_BIT_xxx in bta/bta_gatt_api.h */
@@ -358,9 +361,9 @@ typedef struct
   */
 typedef struct
 {
-    uint16_t start_hdl;                                     /*!< Gatt start handle value of included service */
-    uint16_t end_hdl;                                       /*!< Gatt end handle value of included service */
-    uint16_t uuid;                                          /*!< Gatt attribute value UUID of included service */
+    uint16_t start_hdl;                                     /*!< Gatt  start handle value of included service */
+    uint16_t end_hdl;                                       /*!< Gatt  end handle value of included service */
+    uint16_t uuid;                                          /*!< Gatt  attribute value UUID of included service */
 } esp_gatts_incl_svc_desc_t;                                /*!< Gatt include service entry element */
 
 /**
@@ -368,9 +371,9 @@ typedef struct
   */
 typedef struct
 {
-    uint16_t start_hdl;                                     /*!< Gatt start handle value of included 128 bit service */
-    uint16_t end_hdl;                                       /*!< Gatt end handle value of included 128 bit service */
-} esp_gatts_incl128_svc_desc_t;                             /*!< Gatt include 128 bit service entry element */
+    uint16_t start_hdl;                                     /*!< Gatt  start handle value of included 128 bit service */
+    uint16_t end_hdl;                                       /*!< Gatt  end handle value of included 128 bit service */
+} esp_gatts_incl128_svc_desc_t;                             /*!< Gatt  include 128 bit service entry element */
 
 /// Gatt attribute value
 typedef struct {
@@ -394,6 +397,17 @@ typedef enum {
     ESP_GATT_WRITE_TYPE_NO_RSP  =   1,                      /*!< Gatt write attribute need no response */
     ESP_GATT_WRITE_TYPE_RSP,                                /*!< Gatt write attribute need remote response */
 } esp_gatt_write_type_t;
+
+/**
+  * @brief Connection parameters information
+  */
+typedef struct {
+    uint16_t             interval;                         /*!< connection interval */
+    uint16_t             latency;                          /*!< Slave latency for the connection in number of connection events. Range: 0x0000 to 0x01F3 */
+    uint16_t             timeout;                          /*!< Supervision timeout for the LE Link. Range: 0x000A to 0x0C80.
+                                                                Mandatory Range: 0x000A to 0x0C80 Time = N * 10 msec
+                                                                Time Range: 100 msec to 32 seconds */
+} esp_gatt_conn_params_t;
 
 #define ESP_GATT_IF_NONE    0xff                            /*!< If callback report gattc_if/gatts_if as this macro, means this event is not correspond to any app */
 

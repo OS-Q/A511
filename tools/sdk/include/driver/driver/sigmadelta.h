@@ -15,11 +15,10 @@
 #ifndef __DRIVER_SIGMADELTA_H__
 #define __DRIVER_SIGMADELTA_H__
 #include <esp_types.h>
-#include "soc/gpio_sd_struct.h"
-#include "soc/gpio_sd_reg.h"
+#include "soc/sigmadelta_periph.h"
 #include "driver/gpio.h"
 
-#ifdef __cplusplus
+#ifdef _cplusplus
 extern "C" {
 #endif
 

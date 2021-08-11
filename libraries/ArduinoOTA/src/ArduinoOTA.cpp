@@ -1,17 +1,3 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #ifndef LWIP_OPEN_SRC
 #define LWIP_OPEN_SRC
 #endif
@@ -100,17 +86,6 @@ ArduinoOTAClass& ArduinoOTAClass::setPasswordHash(const char * password) {
         _password = password;
     }
     return *this;
-}
-
-ArduinoOTAClass& ArduinoOTAClass::setPartitionLabel(const char * partition_label) {
-    if (!_initialized && !_partition_label.length() && partition_label) {
-        _partition_label = partition_label;
-    }
-    return *this;
-}
-
-String ArduinoOTAClass::getPartitionLabel() {
-    return _partition_label;
 }
 
 ArduinoOTAClass& ArduinoOTAClass::setRebootOnSuccess(bool reboot){
@@ -260,8 +235,7 @@ void ArduinoOTAClass::_onRx(){
 }
 
 void ArduinoOTAClass::_runUpdate() {
-    const char *partition_label = _partition_label.length() ? _partition_label.c_str() : NULL;
-    if (!Update.begin(_size, _cmd, -1, LOW, partition_label)) {
+    if (!Update.begin(_size, _cmd)) {
 
         log_e("Begin ERROR: %s", Update.errorString());
 
@@ -384,7 +358,7 @@ void ArduinoOTAClass::end() {
 
 void ArduinoOTAClass::handle() {
     if (!_initialized) {
-        return;
+        return; 
     }
     if (_state == OTA_RUNUPDATE) {
         _runUpdate();

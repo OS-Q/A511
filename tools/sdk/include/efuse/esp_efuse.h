@@ -301,23 +301,6 @@ void esp_efuse_disable_basic_rom_console(void);
  */
 esp_err_t esp_efuse_apply_34_encoding(const uint8_t *in_bytes, uint32_t *out_words, size_t in_bytes_len);
 
-/* @brief Disable ROM Download Mode via eFuse
- *
- * Permanently disables the ROM Download Mode feature. Once disabled, if the SoC is booted with
- * strapping pins set for ROM Download Mode then an error is printed instead.
- *
- * @note Not all SoCs support this option. An error will be returned if called on an ESP32
- * with a silicon revision lower than 3, as these revisions do not support this option.
- *
- * @note If ROM Download Mode is already disabled, this function does nothing and returns success.
- *
- * @return
- * - ESP_OK If the eFuse was successfully burned, or had already been burned.
- * - ESP_ERR_NOT_SUPPORTED (ESP32 only) This SoC is not capable of disabling UART download mode
- * - ESP_ERR_INVALID_STATE (ESP32 only) This eFuse is write protected and cannot be written
- */
-esp_err_t esp_efuse_disable_rom_download_mode(void);
-
 /* @brief Write random data to efuse key block write registers
  *
  * @note Caller is responsible for ensuring efuse
@@ -364,13 +347,18 @@ esp_err_t esp_efuse_update_secure_version(uint32_t secure_version);
 
 /* @brief Initializes variables: offset and size to simulate the work of an eFuse.
  *
- * Note: To simulate the work of an eFuse need to set CONFIG_EFUSE_SECURE_VERSION_EMULATE option
+ * Note: To simulate the work of an eFuse need to set CONFIG_BOOTLOADER_EFUSE_SECURE_VERSION_EMULATE option
  * and to add in the partition.csv file a line `efuse_em, data, efuse,   ,   0x2000,`.
  *
  * @param[in] offset The starting address of the partition where the eFuse data will be located.
  * @param[in] size The size of the partition.
  */
 void esp_efuse_init(uint32_t offset, uint32_t size);
+
+inline static bool soc_has_cache_lock_bug(void)
+{
+    return (esp_efuse_get_chip_ver() == 3);
+}
 
 #ifdef __cplusplus
 }

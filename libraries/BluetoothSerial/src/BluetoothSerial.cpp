@@ -51,9 +51,6 @@ static EventGroupHandle_t _spp_event_group = NULL;
 static boolean secondConnectionAttempt;
 static esp_spp_cb_t * custom_spp_callback = NULL;
 static BluetoothSerialDataCb custom_data_callback = NULL;
-static esp_bd_addr_t current_bd_addr;
-static ConfirmRequestCb confirm_request_callback = NULL;
-static AuthCompleteCb auth_complete_callback = NULL;
 
 #define INQ_LEN 0x10
 #define INQ_NUM_RSPS 20
@@ -226,7 +223,11 @@ static void esp_spp_cb(esp_spp_cb_event_t event, esp_spp_cb_param_t *param)
     {
     case ESP_SPP_INIT_EVT:
         log_i("ESP_SPP_INIT_EVT");
+#ifdef ESP_IDF_VERSION_MAJOR
+        esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+#else
         esp_bt_gap_set_scan_mode(ESP_BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+#endif
         if (!_isMaster) {
             log_i("ESP_SPP_INIT_EVT: slave: start");
             esp_spp_start_srv(ESP_SPP_SEC_NONE, ESP_SPP_ROLE_SLAVE, 0, _spp_server_name);
@@ -401,14 +402,8 @@ static void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
         case ESP_BT_GAP_AUTH_CMPL_EVT:
             if (param->auth_cmpl.stat == ESP_BT_STATUS_SUCCESS) {
                 log_v("authentication success: %s", param->auth_cmpl.device_name);
-                if (auth_complete_callback) {
-                    auth_complete_callback(true);
-                }
             } else {
                 log_e("authentication failed, status:%d", param->auth_cmpl.stat);
-                if (auth_complete_callback) {
-                    auth_complete_callback(false);
-                }
             }
             break;
 
@@ -430,13 +425,7 @@ static void esp_bt_gap_cb(esp_bt_gap_cb_event_t event, esp_bt_gap_cb_param_t *pa
        
         case ESP_BT_GAP_CFM_REQ_EVT:
             log_i("ESP_BT_GAP_CFM_REQ_EVT Please compare the numeric value: %d", param->cfm_req.num_val);
-            if (confirm_request_callback) {
-                memcpy(current_bd_addr, param->cfm_req.bda, sizeof(esp_bd_addr_t));
-                confirm_request_callback(param->cfm_req.num_val);
-            }
-            else {
-                esp_bt_gap_ssp_confirm_reply(param->cfm_req.bda, true);
-            }
+            esp_bt_gap_ssp_confirm_reply(param->cfm_req.bda, true);
             break;
 
         case ESP_BT_GAP_KEY_NOTIF_EVT:
@@ -515,9 +504,7 @@ static bool _init_bt(const char *deviceName)
         }
     }
 
-    // Why only master need this?  Slave need this during pairing as well
-//    if (_isMaster && esp_bt_gap_register_callback(esp_bt_gap_cb) != ESP_OK) {
-    if (esp_bt_gap_register_callback(esp_bt_gap_cb) != ESP_OK) {
+    if (_isMaster && esp_bt_gap_register_callback(esp_bt_gap_cb) != ESP_OK) {
         log_e("gap register failed");
         return false;
     }
@@ -689,22 +676,6 @@ void BluetoothSerial::end()
     _stop_bt();
 }
 
-void BluetoothSerial::onConfirmRequest(ConfirmRequestCb cb)
-{
-    confirm_request_callback = cb;
-}
-
-void BluetoothSerial::onAuthComplete(AuthCompleteCb cb)
-{
-    auth_complete_callback = cb;
-}
-
-void BluetoothSerial::confirmReply(boolean confirm)
-{
-    esp_bt_gap_ssp_confirm_reply(current_bd_addr, confirm);  
-}
-
-
 esp_err_t BluetoothSerial::register_callback(esp_spp_cb_t * callback)
 {
     custom_spp_callback = callback;
@@ -750,7 +721,11 @@ bool BluetoothSerial::connect(String remoteName)
     _remote_name[ESP_BT_GAP_MAX_BDNAME_LEN] = 0;
     log_i("master : remoteName");
     // will first resolve name to address
-    esp_bt_gap_set_scan_mode(ESP_BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+#ifdef ESP_IDF_VERSION_MAJOR
+        esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+#else
+        esp_bt_gap_set_scan_mode(ESP_BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+#endif
     if (esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, INQ_LEN, INQ_NUM_RSPS) == ESP_OK) {
         return waitForConnect(SCAN_TIMEOUT);
     }
@@ -790,7 +765,11 @@ bool BluetoothSerial::connect()
         disconnect();
         log_i("master : remoteName");
         // will resolve name to address first - it may take a while
+#ifdef ESP_IDF_VERSION_MAJOR
+        esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+#else
         esp_bt_gap_set_scan_mode(ESP_BT_SCAN_MODE_CONNECTABLE_DISCOVERABLE);
+#endif
         if (esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, INQ_LEN, INQ_NUM_RSPS) == ESP_OK) {
             return waitForConnect(SCAN_TIMEOUT);
         }

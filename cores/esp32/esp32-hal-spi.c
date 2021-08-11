@@ -1,4 +1,4 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,16 +17,28 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
-#include "rom/ets_sys.h"
 #include "esp_attr.h"
-#include "esp_intr.h"
-#include "rom/gpio.h"
 #include "soc/spi_reg.h"
 #include "soc/spi_struct.h"
 #include "soc/io_mux_reg.h"
 #include "soc/gpio_sig_map.h"
 #include "soc/dport_reg.h"
 #include "soc/rtc.h"
+
+#include "esp_system.h"
+#ifdef ESP_IDF_VERSION_MAJOR // IDF 4+
+#if CONFIG_IDF_TARGET_ESP32 // ESP32/PICO-D4
+#include "esp32/rom/ets_sys.h"
+#include "esp32/rom/gpio.h"
+#include "esp_intr_alloc.h"
+#else 
+#error Target CONFIG_IDF_TARGET is not supported
+#endif
+#else // ESP32 Before IDF 4.0
+#include "rom/ets_sys.h"
+#include "rom/gpio.h"
+#include "esp_intr.h"
+#endif
 
 #define SPI_CLK_IDX(p)  ((p==0)?SPICLK_OUT_IDX:((p==1)?SPICLK_OUT_IDX:((p==2)?HSPICLK_OUT_IDX:((p==3)?VSPICLK_OUT_IDX:0))))
 #define SPI_MISO_IDX(p) ((p==0)?SPIQ_OUT_IDX:((p==1)?SPIQ_OUT_IDX:((p==2)?HSPIQ_OUT_IDX:((p==3)?VSPIQ_OUT_IDX:0))))
@@ -384,8 +396,12 @@ static void _on_apb_change(void * arg, apb_change_ev_t ev_type, uint32_t old_apb
     }
 }
 
-static void spiInitBus(spi_t * spi)
+void spiStopBus(spi_t * spi)
 {
+    if(!spi) {
+        return;
+    }
+    SPI_MUTEX_LOCK();
     spi->dev->slave.trans_done = 0;
     spi->dev->slave.slave_mode = 0;
     spi->dev->pin.val = 0;
@@ -395,19 +411,8 @@ static void spiInitBus(spi_t * spi)
     spi->dev->ctrl1.val = 0;
     spi->dev->ctrl2.val = 0;
     spi->dev->clock.val = 0;
-}
-
-void spiStopBus(spi_t * spi)
-{
-    if(!spi) {
-        return;
-    }
-
-    removeApbChangeCallback(spi, _on_apb_change);
-
-    SPI_MUTEX_LOCK();
-    spiInitBus(spi);
     SPI_MUTEX_UNLOCK();
+    removeApbChangeCallback(spi, _on_apb_change);
 }
 
 spi_t * spiStartBus(uint8_t spi_num, uint32_t clockDiv, uint8_t dataMode, uint8_t bitOrder)
@@ -438,8 +443,12 @@ spi_t * spiStartBus(uint8_t spi_num, uint32_t clockDiv, uint8_t dataMode, uint8_
         DPORT_CLEAR_PERI_REG_MASK(DPORT_PERIP_RST_EN_REG, DPORT_SPI01_RST);
     }
 
+    spiStopBus(spi);
+    spiSetDataMode(spi, dataMode);
+    spiSetBitOrder(spi, bitOrder);
+    spiSetClockDiv(spi, clockDiv);
+
     SPI_MUTEX_LOCK();
-    spiInitBus(spi);
     spi->dev->user.usr_mosi = 1;
     spi->dev->user.usr_miso = 1;
     spi->dev->user.doutdin = 1;
@@ -449,10 +458,6 @@ spi_t * spiStartBus(uint8_t spi_num, uint32_t clockDiv, uint8_t dataMode, uint8_
         spi->dev->data_buf[i] = 0x00000000;
     }
     SPI_MUTEX_UNLOCK();
-
-    spiSetDataMode(spi, dataMode);
-    spiSetBitOrder(spi, bitOrder);
-    spiSetClockDiv(spi, clockDiv);
 
     addApbChangeCallback(spi, _on_apb_change);
     return spi;

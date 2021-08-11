@@ -1,4 +1,4 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2018 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -94,7 +94,6 @@ struct rmt_obj_s
     transaction_state_t tx_state;
     rmt_rx_data_cb_t cb;
     bool data_alloc;
-    void * arg;
 };
 
 /**
@@ -105,14 +104,14 @@ static xSemaphoreHandle g_rmt_objlocks[MAX_CHANNELS] = {
 };
 
 static rmt_obj_t g_rmt_objects[MAX_CHANNELS] = {
-    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false, NULL},
-    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false, NULL},
-    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false, NULL},
-    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false, NULL},
-    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false, NULL},
-    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false, NULL},
-    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false, NULL},
-    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false, NULL},
+    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false},
+    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false},
+    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false},
+    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false},
+    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false},
+    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false},
+    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false},
+    { false, NULL, 0, 0, 0, 0, 0, NULL, E_NO_INTR, E_INACTIVE, NULL, false},
 };
 
 /**
@@ -324,7 +323,6 @@ bool rmtReadData(rmt_obj_t* rmt, uint32_t* data, size_t size)
     return true;
 }
 
-
 bool rmtBeginReceive(rmt_obj_t* rmt)
 {
     if (!rmt) {
@@ -358,7 +356,7 @@ bool rmtReceiveCompleted(rmt_obj_t* rmt)
     }
 }
 
-bool rmtRead(rmt_obj_t* rmt, rmt_rx_data_cb_t cb, void * arg)
+bool rmtRead(rmt_obj_t* rmt, rmt_rx_data_cb_t cb)
 {
     if (!rmt && !cb) {
         return false;
@@ -366,7 +364,6 @@ bool rmtRead(rmt_obj_t* rmt, rmt_rx_data_cb_t cb, void * arg)
     int channel = rmt->channel;
 
     RMT_MUTEX_LOCK(channel);
-    rmt->arg = arg;
     rmt->intr_mode = E_RX_INTR;
     rmt->tx_state = E_FIRST_HALF;
     rmt->cb = cb;
@@ -391,19 +388,6 @@ bool rmtRead(rmt_obj_t* rmt, rmt_rx_data_cb_t cb, void * arg)
     RMT_MUTEX_UNLOCK(channel);
 
     return true;
-}
-
-bool rmtEnd(rmt_obj_t* rmt) {
-    if (!rmt) {
-        return false;
-    }
-    int channel = rmt->channel;
-
-    RMT_MUTEX_LOCK(channel);
-    RMT.conf_ch[channel].conf1.rx_en = 1;
-    RMT_MUTEX_UNLOCK(channel);
-
-    return  true;
 }
 
 bool rmtReadAsync(rmt_obj_t* rmt, rmt_data_t* data, size_t size, void* eventFlag, bool waitForData, uint32_t timeout)
@@ -538,8 +522,6 @@ rmt_obj_t* rmtInit(int pin, bool tx_not_rx, rmt_reserve_memsize_t memsize)
     rmt->tx_not_rx = tx_not_rx;
     rmt->buffers =buffers;
     rmt->channel = channel;
-    rmt->arg = NULL;
-
     _initPin(pin, channel, tx_not_rx);
 
     // Initialize the registers in default mode:
@@ -561,7 +543,6 @@ rmt_obj_t* rmtInit(int pin, bool tx_not_rx, rmt_reserve_memsize_t memsize)
     RMT.conf_ch[channel].conf1.idle_out_lv = 0;     // signal level for idle
     RMT.conf_ch[channel].conf1.idle_out_en = 1;     // enable idle
     RMT.conf_ch[channel].conf1.ref_always_on = 0;     // base clock
-
     RMT.apb_conf.fifo_mask = 1;
 
     if (tx_not_rx) {
@@ -677,7 +658,7 @@ static void IRAM_ATTR _rmt_isr(void* arg)
                     }
                     if (g_rmt_objects[ch].cb) {
                         // actually received data ptr                        
-                        (g_rmt_objects[ch].cb)(data_received, _rmt_get_mem_len(ch), g_rmt_objects[ch].arg);
+                        (g_rmt_objects[ch].cb)(data_received, _rmt_get_mem_len(ch));
 
                         // restart the reception
                         RMT.conf_ch[ch].conf1.mem_owner = 1;

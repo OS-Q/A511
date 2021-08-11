@@ -1,4 +1,4 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,14 +15,26 @@
 #include "esp32-hal-gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "rom/ets_sys.h"
 #include "esp_attr.h"
-#include "esp_intr.h"
-#include "rom/gpio.h"
 #include "soc/gpio_reg.h"
 #include "soc/io_mux_reg.h"
 #include "soc/gpio_struct.h"
 #include "soc/rtc_io_reg.h"
+
+#include "esp_system.h"
+#ifdef ESP_IDF_VERSION_MAJOR // IDF 4+
+#if CONFIG_IDF_TARGET_ESP32 // ESP32/PICO-D4
+#include "esp32/rom/ets_sys.h"
+#include "esp32/rom/gpio.h"
+#include "esp_intr_alloc.h"
+#else 
+#error Target CONFIG_IDF_TARGET is not supported
+#endif
+#else // ESP32 Before IDF 4.0
+#include "rom/ets_sys.h"
+#include "rom/gpio.h"
+#include "esp_intr.h"
+#endif
 
 const int8_t esp32_adc2gpio[20] = {36, 37, 38, 39, 32, 33, 34, 35, -1, -1, 4, 0, 2, 15, 13, 12, 14, 27, 25, 26};
 

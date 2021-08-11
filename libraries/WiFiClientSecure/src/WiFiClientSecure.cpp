@@ -1,16 +1,22 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+  WiFiClientSecure.cpp - Client Secure class for ESP32
+  Copyright (c) 2016 Hristo Gochkov  All right reserved.
+  Additions Copyright (C) 2017 Evandro Luis Copercini.
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+*/
 
 #include "WiFiClientSecure.h"
 #include <lwip/sockets.h>
@@ -30,7 +36,6 @@ WiFiClientSecure::WiFiClientSecure()
     ssl_init(sslclient);
     sslclient->socket = -1;
     sslclient->handshake_timeout = 120000;
-    _use_insecure = false;
     _CA_cert = NULL;
     _cert = NULL;
     _private_key = NULL;
@@ -111,17 +116,17 @@ int WiFiClientSecure::connect(const char *host, uint16_t port, int32_t timeout){
     return connect(host, port);
 }
 
-int WiFiClientSecure::connect(IPAddress ip, uint16_t port, const char *CA_cert, const char *cert, const char *private_key)
+int WiFiClientSecure::connect(IPAddress ip, uint16_t port, const char *_CA_cert, const char *_cert, const char *_private_key)
 {
-    return connect(ip.toString().c_str(), port, CA_cert, cert, private_key);
+    return connect(ip.toString().c_str(), port, _CA_cert, _cert, _private_key);
 }
 
-int WiFiClientSecure::connect(const char *host, uint16_t port, const char *CA_cert, const char *cert, const char *private_key)
+int WiFiClientSecure::connect(const char *host, uint16_t port, const char *_CA_cert, const char *_cert, const char *_private_key)
 {
     if(_timeout > 0){
         sslclient->handshake_timeout = _timeout;
     }
-    int ret = start_ssl_client(sslclient, host, port, _timeout, CA_cert, cert, private_key, NULL, NULL, _use_insecure);
+    int ret = start_ssl_client(sslclient, host, port, _timeout, _CA_cert, _cert, _private_key, NULL, NULL);
     _lastError = ret;
     if (ret < 0) {
         log_e("start_ssl_client: %d", ret);
@@ -133,7 +138,7 @@ int WiFiClientSecure::connect(const char *host, uint16_t port, const char *CA_ce
 }
 
 int WiFiClientSecure::connect(IPAddress ip, uint16_t port, const char *pskIdent, const char *psKey) {
-    return connect(ip.toString().c_str(), port, pskIdent, psKey);
+    return connect(ip.toString().c_str(), port,_pskIdent, _psKey);
 }
 
 int WiFiClientSecure::connect(const char *host, uint16_t port, const char *pskIdent, const char *psKey) {
@@ -141,7 +146,7 @@ int WiFiClientSecure::connect(const char *host, uint16_t port, const char *pskId
     if(_timeout > 0){
         sslclient->handshake_timeout = _timeout;
     }
-    int ret = start_ssl_client(sslclient, host, port, _timeout, NULL, NULL, NULL, pskIdent, psKey, _use_insecure);
+    int ret = start_ssl_client(sslclient, host, port, _timeout, NULL, NULL, NULL, _pskIdent, _psKey);
     _lastError = ret;
     if (ret < 0) {
         log_e("start_ssl_client: %d", ret);
@@ -240,16 +245,6 @@ uint8_t WiFiClientSecure::connected()
     return _connected;
 }
 
-void WiFiClientSecure::setInsecure()
-{
-    _CA_cert = NULL;
-    _cert = NULL;
-    _private_key = NULL;
-    _pskIdent = NULL;
-    _psKey = NULL;
-    _use_insecure = true;
-}
-
 void WiFiClientSecure::setCACert (const char *rootCA)
 {
     _CA_cert = rootCA;
@@ -279,16 +274,18 @@ bool WiFiClientSecure::verify(const char* fp, const char* domain_name)
 }
 
 char *WiFiClientSecure::_streamLoad(Stream& stream, size_t size) {
-  char *dest = (char*)malloc(size+1);
+  static char *dest = nullptr;
+  if(dest) {
+      free(dest);
+  }
+  dest = (char*)malloc(size);
   if (!dest) {
     return nullptr;
   }
   if (size != stream.readBytes(dest, size)) {
     free(dest);
     dest = nullptr;
-    return nullptr;
   }
-  dest[size] = '\0';
   return dest;
 }
 
@@ -327,7 +324,9 @@ int WiFiClientSecure::lastError(char *buf, const size_t size)
     if (!_lastError) {
         return 0;
     }
-    mbedtls_strerror(_lastError, buf, size);
+    char error_buf[100];
+    mbedtls_strerror(_lastError, error_buf, 100);
+    snprintf(buf, size, "%s", error_buf);
     return _lastError;
 }
 

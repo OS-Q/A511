@@ -150,7 +150,7 @@ static bool _udp_task_start(){
         }
     }
     if(!_udp_task_handle){
-        xTaskCreateUniversal(_udp_task, "async_udp", 4096, NULL, CONFIG_ARDUINO_UDP_TASK_PRIORITY, (TaskHandle_t*)&_udp_task_handle, CONFIG_ARDUINO_UDP_RUNNING_CORE);
+        xTaskCreateUniversal(_udp_task, "async_udp", 4096, NULL, 3, (TaskHandle_t*)&_udp_task_handle, CONFIG_ARDUINO_UDP_RUNNING_CORE);
         if(!_udp_task_handle){
             return false;
         }
@@ -277,16 +277,6 @@ void AsyncUDPMessage::flush()
     _index = 0;
 }
 
-AsyncUDPPacket::AsyncUDPPacket(AsyncUDPPacket &packet){
-    _udp = packet._udp;
-    _pb = packet._pb;
-    _if = packet._if;
-    _data = packet._data;
-    _len = packet._len;
-    _index = 0;
-
-    pbuf_ref(_pb);
-}
 
 AsyncUDPPacket::AsyncUDPPacket(AsyncUDP *udp, pbuf *pb, const ip_addr_t *raddr, uint16_t rport, struct netif * ntif)
 {
@@ -489,7 +479,6 @@ AsyncUDP::AsyncUDP()
 {
     _pcb = NULL;
     _connected = false;
-	_lastErr = ERR_OK;
     _handler = NULL;
 }
 
@@ -528,8 +517,8 @@ bool AsyncUDP::connect(const ip_addr_t *addr, uint16_t port)
     }
     close();
     UDP_MUTEX_LOCK();
-    _lastErr = _udp_connect(_pcb, addr, port);
-    if(_lastErr != ERR_OK) {
+    err_t err = _udp_connect(_pcb, addr, port);
+    if(err != ERR_OK) {
         UDP_MUTEX_UNLOCK();
         return false;
     }
@@ -657,7 +646,7 @@ size_t AsyncUDP::writeTo(const uint8_t * data, size_t len, const ip_addr_t * add
     if(len > CONFIG_TCP_MSS) {
         len = CONFIG_TCP_MSS;
     }
-    _lastErr = ERR_OK;
+    err_t err = ERR_OK;
     pbuf* pbt = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_RAM);
     if(pbt != NULL) {
         uint8_t* dst = reinterpret_cast<uint8_t*>(pbt->payload);
@@ -667,16 +656,16 @@ size_t AsyncUDP::writeTo(const uint8_t * data, size_t len, const ip_addr_t * add
             void * nif = NULL;
             tcpip_adapter_get_netif((tcpip_adapter_if_t)tcpip_if, &nif);
             if(!nif){
-                _lastErr = _udp_sendto(_pcb, pbt, addr, port);
+                err = _udp_sendto(_pcb, pbt, addr, port);
             } else {
-                _lastErr = _udp_sendto_if(_pcb, pbt, addr, port, (struct netif *)nif);
+                err = _udp_sendto_if(_pcb, pbt, addr, port, (struct netif *)nif);
             }
         } else {
-            _lastErr = _udp_sendto(_pcb, pbt, addr, port);
+            err = _udp_sendto(_pcb, pbt, addr, port);
         }
         UDP_MUTEX_UNLOCK();
         pbuf_free(pbt);
-        if(_lastErr < ERR_OK) {
+        if(err < ERR_OK) {
             return 0;
         }
         return len;
@@ -693,8 +682,9 @@ void AsyncUDP::_recv(udp_pcb *upcb, pbuf *pb, const ip_addr_t *addr, uint16_t po
         if(_handler) {
             AsyncUDPPacket packet(this, this_pb, addr, port, netif);
             _handler(packet);
+        } else {
+            pbuf_free(this_pb);
         }
-        pbuf_free(this_pb);
     }
 }
 
@@ -878,10 +868,6 @@ AsyncUDP::operator bool()
 bool AsyncUDP::connected()
 {
     return _connected;
-}
-
-esp_err_t AsyncUDP::lastErr() {
-	return _lastErr;
 }
 
 void AsyncUDP::onPacket(AuPacketHandlerFunctionWithArg cb, void * arg)

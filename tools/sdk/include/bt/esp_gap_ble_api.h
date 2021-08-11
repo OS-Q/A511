@@ -287,8 +287,6 @@ typedef enum {
     ESP_BLE_SM_ONLY_ACCEPT_SPECIFIED_SEC_AUTH,
     /* Enable/Disable OOB support */
     ESP_BLE_SM_OOB_SUPPORT,
-    /* Appl encryption key size */
-    ESP_BLE_APP_ENC_KEY_SIZE,
     ESP_BLE_SM_MAX_PARAM,
 } esp_ble_sm_param_t;
 
@@ -389,6 +387,15 @@ typedef struct {
                                                         duplicate advertising reports (BLE_SCAN_DUPLICATE_ENABLE) to the Host, or if the Link Layer should generate
                                                         advertising reports for each packet received */
 } esp_ble_scan_params_t;
+
+/// connection parameters information
+typedef struct {
+    uint16_t             interval;                  /*!< connection interval */
+    uint16_t             latency;                   /*!< Slave latency for the connection in number of connection events. Range: 0x0000 to 0x01F3 */
+    uint16_t             timeout;                   /*!< Supervision timeout for the LE Link. Range: 0x000A to 0x0C80.
+                                                      Mandatory Range: 0x000A to 0x0C80 Time = N * 10 msec
+                                                      Time Range: 100 msec to 32 seconds */
+} esp_gap_conn_params_t;
 
 /// Connection update parameters
 typedef struct {
@@ -897,7 +904,7 @@ esp_err_t esp_ble_gap_update_conn_params(esp_ble_conn_update_params_t *params);
 esp_err_t esp_ble_gap_set_pkt_data_len(esp_bd_addr_t remote_device, uint16_t tx_data_length);
 
 /**
- * @brief           This function sets the static Random Address and Non-Resolvable Private Address for the application
+ * @brief           This function sets the random address for the application
  *
  * @param[in]       rand_addr: the random address which should be setting
  *
@@ -951,12 +958,13 @@ esp_err_t esp_ble_gap_config_local_icon (uint16_t icon);
 *
 * @param[in]        add_remove: the value is true if added the ble device to the white list, and false remove to the white list.
 * @param[in]        remote_bda: the remote device address add/remove from the white list.
+* @param[in]        wl_addr_type: whitelist address type
 * @return
 *                     - ESP_OK : success
 *                     - other  : failed
 *
 */
-esp_err_t esp_ble_gap_update_whitelist(bool add_remove, esp_bd_addr_t remote_bda);
+esp_err_t esp_ble_gap_update_whitelist(bool add_remove, esp_bd_addr_t remote_bda, esp_ble_wl_addr_type_t wl_addr_type);
 
 /**
 * @brief            Get the whitelist size in the controller
@@ -1245,18 +1253,19 @@ esp_err_t esp_ble_oob_req_reply(esp_bd_addr_t bd_addr, uint8_t *TK, uint8_t len)
 */
 esp_err_t esp_ble_gap_disconnect(esp_bd_addr_t remote_device);
 
-
 /**
-* @brief           This function is called to authorized a link after Authentication(MITM protection)
+* @brief           This function is called to read the connection
+*                  parameters information of the device
 *
 * @param[in]       bd_addr: BD address of the peer device.
-* @param[out]      authorize: Authorized the link or not.
+* @param[out]      conn_params: the connection parameters information
 *
 * @return          - ESP_OK : success
 *                  - other  : failed
 *
 */
-esp_err_t esp_gap_ble_set_authorization(esp_bd_addr_t bd_addr, bool authorize);
+esp_err_t esp_ble_get_current_conn_params(esp_bd_addr_t bd_addr, esp_gap_conn_params_t *conn_params);
+
 #ifdef __cplusplus
 }
 #endif

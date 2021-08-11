@@ -139,7 +139,7 @@ typedef union {
     uint32_t val;
 } can_err_code_cap_reg_t;
 
-typedef struct {
+typedef struct can_acc_filter_s {
     can_reg_t code_reg[4];
     can_reg_t mask_reg[4];
     uint32_t reserved32[5];
@@ -147,8 +147,8 @@ typedef struct {
 
 typedef union {
     struct {
-        uint32_t rx_message_counter: 7;                     /* RMC[6:0] RX Message Counter */
-        uint32_t reserved25: 25;                            /* Internal Reserved */
+        uint32_t rx_message_counter: 5;                     /* RMC[4:0] RX Message Counter */
+        uint32_t reserved27: 27;                            /* Internal Reserved */
     };
     uint32_t val;
 } can_rx_msg_cnt_reg_t;
@@ -166,7 +166,7 @@ typedef union {
 
 /* ---------------------------- Register Layout ------------------------------ */
 
-typedef volatile struct {
+typedef volatile struct can_dev_s {
     //Configuration and Control Registers
     can_mode_reg_t mode_reg;                                /* Address 0 */
     can_cmd_reg_t command_reg;                              /* Address 1 */

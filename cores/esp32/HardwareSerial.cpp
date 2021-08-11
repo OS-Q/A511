@@ -1,17 +1,3 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -67,8 +53,6 @@ void HardwareSerial::begin(unsigned long baud, uint32_t config, int8_t rxPin, in
     }
 
     _uart = uartBegin(_uart_nr, baud ? baud : 9600, config, rxPin, txPin, 256, invert);
-    _tx_pin = txPin;
-    _rx_pin = rxPin;
 
     if(!baud) {
         uartStartDetectBaudrate(_uart);
@@ -86,8 +70,6 @@ void HardwareSerial::begin(unsigned long baud, uint32_t config, int8_t rxPin, in
         } else {
             log_e("Could not detect baudrate. Serial data at the port must be present within the timeout for detection to be possible");
             _uart = NULL;
-            _tx_pin = 255;
-            _rx_pin = 255;
         }
     }
 }
@@ -102,8 +84,7 @@ void HardwareSerial::end()
     if(uartGetDebug() == _uart_nr) {
         uartSetDebug(0);
     }
-    log_v("pins %d %d",_tx_pin, _rx_pin);
-    uartEnd(_uart, _tx_pin, _rx_pin);
+    uartEnd(_uart);
     _uart = 0;
 }
 
@@ -197,9 +178,4 @@ uint32_t  HardwareSerial::baudRate()
 HardwareSerial::operator bool() const
 {
     return true;
-}
-
-void HardwareSerial::setRxInvert(bool invert)
-{
-    uartSetRxInvert(_uart, invert);
 }

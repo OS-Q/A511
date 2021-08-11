@@ -1,4 +1,4 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,12 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 #include "sd_diskio.h"
+#include "esp_system.h"
 extern "C" {
-    #include "diskio.h"
-    #include "ffconf.h"
     #include "ff.h"
+    #include "diskio.h"
+#ifdef ESP_IDF_VERSION_MAJOR
+    #include "diskio_impl.h"
+#endif
     //#include "esp_vfs.h"
     #include "esp_vfs_fat.h"
     char CRC7(const char* data, int length);
@@ -608,9 +610,8 @@ DRESULT ff_sd_write(uint8_t pdrv, const uint8_t* buffer, DWORD sector, UINT coun
 
     if (count > 1) {
         res = sdWriteSectors(pdrv, (const char*)buffer, sector, count) ? RES_OK : RES_ERROR;
-    } else {
-        res = sdWriteSector(pdrv, (const char*)buffer, sector) ? RES_OK : RES_ERROR;
     }
+    res = sdWriteSector(pdrv, (const char*)buffer, sector) ? RES_OK : RES_ERROR;
     return res;
 }
 
@@ -650,7 +651,6 @@ uint8_t sdcard_uninit(uint8_t pdrv)
     if (pdrv >= FF_VOLUMES || card == NULL) {
         return 1;
     }
-    sdTransaction(pdrv, GO_IDLE_STATE, 0, NULL);
     ff_diskio_register(pdrv, NULL);
     s_cards[pdrv] = NULL;
     esp_err_t err = ESP_OK;

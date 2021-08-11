@@ -1,4 +1,4 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@
 #include "freertos/task.h"
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
-#include "rom/ets_sys.h"
 #include "esp_attr.h"
-#include "esp_intr.h"
-#include "rom/uart.h"
 #include "soc/uart_reg.h"
 #include "soc/uart_struct.h"
 #include "soc/io_mux_reg.h"
@@ -29,6 +26,20 @@
 #include "soc/dport_reg.h"
 #include "soc/rtc.h"
 #include "esp_intr_alloc.h"
+
+#include "esp_system.h"
+#ifdef ESP_IDF_VERSION_MAJOR // IDF 4+
+#if CONFIG_IDF_TARGET_ESP32 // ESP32/PICO-D4
+#include "esp32/rom/ets_sys.h"
+#include "esp32/rom/uart.h"
+#else 
+#error Target CONFIG_IDF_TARGET is not supported
+#endif
+#else // ESP32 Before IDF 4.0
+#include "rom/ets_sys.h"
+#include "rom/uart.h"
+#include "esp_intr.h"
+#endif
 
 #define UART_REG_BASE(u)    ((u==0)?DR_REG_UART_BASE:(      (u==1)?DR_REG_UART1_BASE:(    (u==2)?DR_REG_UART2_BASE:0)))
 #define UART_RXD_IDX(u)     ((u==0)?U0RXD_IN_IDX:(          (u==1)?U1RXD_IN_IDX:(         (u==2)?U2RXD_IN_IDX:0)))
@@ -85,7 +96,7 @@ static void IRAM_ATTR _uart_isr(void *arg)
         uart->dev->int_clr.rxfifo_tout = 1;
         while(uart->dev->status.rxfifo_cnt || (uart->dev->mem_rx_status.wr_addr != uart->dev->mem_rx_status.rd_addr)) {
             c = uart->dev->fifo.rw_byte;
-            if(uart->queue != NULL)  {
+            if(uart->queue != NULL && !xQueueIsQueueFullFromISR(uart->queue)) {
                 xQueueSendFromISR(uart->queue, &c, &xHigherPriorityTaskWoken);
             }
         }
@@ -124,21 +135,21 @@ void uartDisableInterrupt(uart_t* uart)
     UART_MUTEX_UNLOCK();
 }
 
-void uartDetachRx(uart_t* uart, uint8_t rxPin)
+void uartDetachRx(uart_t* uart)
 {
     if(uart == NULL) {
         return;
     }
-    pinMatrixInDetach(rxPin, false, false);
+    pinMatrixInDetach(UART_RXD_IDX(uart->num), false, false);
     uartDisableInterrupt(uart);
 }
 
-void uartDetachTx(uart_t* uart, uint8_t txPin)
+void uartDetachTx(uart_t* uart)
 {
     if(uart == NULL) {
         return;
     }
-    pinMatrixOutDetach(txPin, false, false);
+    pinMatrixOutDetach(UART_TXD_IDX(uart->num), false, false);
 }
 
 void uartAttachRx(uart_t* uart, uint8_t rxPin, bool inverted)
@@ -208,11 +219,6 @@ uart_t* uartBegin(uint8_t uart_nr, uint32_t baudrate, uint32_t config, int8_t rx
         uart->dev->conf0.stop_bit_num = ONE_STOP_BITS_CONF;
         uart->dev->rs485_conf.dl1_en = 1;
     }
-
-    // tx_idle_num : idle interval after tx FIFO is empty(unit: the time it takes to send one bit under current baudrate)
-    // Setting it to 0 prevents line idle time/delays when sending messages with small intervals
-    uart->dev->idle_conf.tx_idle_num = 0;  //
-
     UART_MUTEX_UNLOCK();
 
     if(rxPin != -1) {
@@ -226,7 +232,7 @@ uart_t* uartBegin(uint8_t uart_nr, uint32_t baudrate, uint32_t config, int8_t rx
     return uart;
 }
 
-void uartEnd(uart_t* uart, uint8_t txPin, uint8_t rxPin)
+void uartEnd(uart_t* uart)
 {
     if(uart == NULL) {
         return;
@@ -243,8 +249,8 @@ void uartEnd(uart_t* uart, uint8_t txPin, uint8_t rxPin)
 
     UART_MUTEX_UNLOCK();
 
-    uartDetachRx(uart, rxPin);
-    uartDetachTx(uart, txPin);
+    uartDetachRx(uart);
+    uartDetachTx(uart);
 }
 
 size_t uartResizeRxBuffer(uart_t * uart, size_t new_size) {
@@ -257,8 +263,7 @@ size_t uartResizeRxBuffer(uart_t * uart, size_t new_size) {
         vQueueDelete(uart->queue);
         uart->queue = xQueueCreate(new_size, sizeof(uint8_t));
         if(uart->queue == NULL) {
-            UART_MUTEX_UNLOCK();
-            return NULL;
+            return 0;
         }
     }
     UART_MUTEX_UNLOCK();
@@ -266,23 +271,12 @@ size_t uartResizeRxBuffer(uart_t * uart, size_t new_size) {
     return new_size;
 }
 
-void uartSetRxInvert(uart_t* uart, bool invert)
-{
-    if (uart == NULL)
-        return;
-    
-    if (invert)
-        uart->dev->conf0.rxd_inv = 1;
-    else
-        uart->dev->conf0.rxd_inv = 0;
-}
-
 uint32_t uartAvailable(uart_t* uart)
 {
     if(uart == NULL || uart->queue == NULL) {
         return 0;
     }
-    return (uxQueueMessagesWaiting(uart->queue) + uart->dev->status.rxfifo_cnt) ;
+    return uxQueueMessagesWaiting(uart->queue);
 }
 
 uint32_t uartAvailableForWrite(uart_t* uart)
@@ -293,35 +287,12 @@ uint32_t uartAvailableForWrite(uart_t* uart)
     return 0x7f - uart->dev->status.txfifo_cnt;
 }
 
-void uartRxFifoToQueue(uart_t* uart)
-{
-	uint8_t c;
-    UART_MUTEX_LOCK();
-	//disable interrupts
-	uart->dev->int_ena.val = 0;
-	uart->dev->int_clr.val = 0xffffffff;
-	while (uart->dev->status.rxfifo_cnt || (uart->dev->mem_rx_status.wr_addr != uart->dev->mem_rx_status.rd_addr)) {
-		c = uart->dev->fifo.rw_byte;
-		xQueueSend(uart->queue, &c, 0);
-	}
-	//enable interrupts
-	uart->dev->int_ena.rxfifo_full = 1;
-	uart->dev->int_ena.frm_err = 1;
-	uart->dev->int_ena.rxfifo_tout = 1;
-	uart->dev->int_clr.val = 0xffffffff;
-    UART_MUTEX_UNLOCK();
-}
-
 uint8_t uartRead(uart_t* uart)
 {
     if(uart == NULL || uart->queue == NULL) {
         return 0;
     }
     uint8_t c;
-    if ((uxQueueMessagesWaiting(uart->queue) == 0) && (uart->dev->status.rxfifo_cnt > 0))
-    {
-    	uartRxFifoToQueue(uart);
-    }
     if(xQueueReceive(uart->queue, &c, 0)) {
         return c;
     }
@@ -334,10 +305,6 @@ uint8_t uartPeek(uart_t* uart)
         return 0;
     }
     uint8_t c;
-    if ((uxQueueMessagesWaiting(uart->queue) == 0) && (uart->dev->status.rxfifo_cnt > 0))
-    {
-    	uartRxFifoToQueue(uart);
-    }
     if(xQueuePeek(uart->queue, &c, 0)) {
         return c;
     }
@@ -371,7 +338,7 @@ void uartWriteBuf(uart_t* uart, const uint8_t * data, size_t len)
 
 void uartFlush(uart_t* uart)
 {
-    uartFlushTxOnly(uart,true);
+    uartFlushTxOnly(uart,false);
 }
 
 void uartFlushTxOnly(uart_t* uart, bool txOnly)

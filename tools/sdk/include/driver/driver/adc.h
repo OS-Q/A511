@@ -23,7 +23,7 @@ extern "C" {
 #include <stdbool.h>
 #include "esp_err.h"
 #include "driver/gpio.h"
-#include "soc/adc_channel.h"
+#include "soc/adc_periph.h"
 
 typedef enum {
     ADC_ATTEN_DB_0   = 0,  /*!<The input voltage of ADC will be reduced to about 1/1 */
@@ -212,48 +212,16 @@ esp_err_t adc1_config_channel_atten(adc1_channel_t channel, adc_atten_t atten);
  */
 int adc1_get_raw(adc1_channel_t channel);
 
-/** @cond */    //Doxygen command to hide deprecated function from API Reference
-/*
- * @note When the power switch of SARADC1, SARADC2, HALL sensor and AMP sensor is turned on,
- *       the input of GPIO36 and GPIO39 will be pulled down for about 80ns.
- *       When enabling power for any of these peripherals, ignore input from GPIO36 and GPIO39.
- *       Please refer to section 3.11 of 'ECO_and_Workarounds_for_Bugs_in_ESP32' for the description of this issue.
- *       
- * @deprecated This function returns an ADC1 reading but is deprecated due to
- * a misleading name and has been changed to directly call the new function.
- * Use the new function adc1_get_raw() instead
- */
-int adc1_get_voltage(adc1_channel_t channel) __attribute__((deprecated));
-/** @endcond */
-
 /**
  * @brief Enable ADC power
- * @deprecated Use adc_power_acquire and adc_power_release instead.
  */
-void adc_power_on(void) __attribute__((deprecated));
+void adc_power_on();
 
 /**
  * @brief Power off SAR ADC
- * @deprecated Use adc_power_acquire and adc_power_release instead.
- * This function will force power down for ADC.
- * This function is deprecated because forcing power ADC power off may
- * disrupt operation of other components which may be using the ADC.
+ * This function will force power down for ADC
  */
-void adc_power_off(void) __attribute__((deprecated));
-
-/**
- * @brief Increment the usage counter for ADC module.
- * ADC will stay powered on while the counter is greater than 0.
- * Call adc_power_release when done using the ADC.
- */
-void adc_power_acquire(void);
-
-/**
- * @brief Decrement the usage counter for ADC module.
- * ADC will stay powered on while the counter is greater than 0.
- * Call this function when done using the ADC.
- */
-void adc_power_release(void);
+void adc_power_off();
 
 /**
  * @brief Initialize ADC pad

@@ -16,15 +16,17 @@
 #define _DRIVER_GPIO_H_
 #include "esp_err.h"
 #include <esp_types.h>
-#include "soc/gpio_reg.h"
-#include "soc/gpio_struct.h"
-#include "soc/rtc_io_reg.h"
-#include "soc/io_mux_reg.h"
-#include "soc/gpio_sig_map.h"
-#include "rom/gpio.h"
+#include <esp_bit_defs.h>
+#include "esp32/rom/gpio.h"
 #include "esp_attr.h"
 #include "esp_intr_alloc.h"
 #include "soc/gpio_periph.h"
+
+#include "sdkconfig.h"
+
+#ifdef CONFIG_LEGACY_INCLUDE_COMMON_HEADERS
+#include "soc/rtc_io_reg.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -128,6 +130,7 @@ extern "C" {
 #define GPIO_IS_VALID_OUTPUT_GPIO(gpio_num)      ((GPIO_IS_VALID_GPIO(gpio_num)) && (gpio_num < 34))         /*!< Check whether it can be a valid GPIO number of output mode */
 
 typedef enum {
+    GPIO_NUM_NC = -1,    /*!< Use to signal not connected to S/W */
     GPIO_NUM_0 = 0,     /*!< GPIO0, input and output */
     GPIO_NUM_1 = 1,     /*!< GPIO1, input and output */
     GPIO_NUM_2 = 2,     /*!< GPIO2, input and output
@@ -276,11 +279,9 @@ esp_err_t gpio_set_intr_type(gpio_num_t gpio_num, gpio_int_type_t intr_type);
 /**
  * @brief  Enable GPIO module interrupt signal
  *
- * @note Please do not use the interrupt of GPIO36 and GPIO39 when using ADC or Wi-Fi with sleep mode enabled.
+ * @note Please do not use the interrupt of GPIO36 and GPIO39 when using ADC.
  *       Please refer to the comments of `adc1_get_raw`.
  *       Please refer to section 3.11 of 'ECO_and_Workarounds_for_Bugs_in_ESP32' for the description of this issue.
- *       As a workaround, call adc_power_acquire() in the app. This will result in higher power consumption (by ~1mA),
- *       but will remove the glitches on GPIO36 and GPIO39.
  *
  * @param  gpio_num GPIO number. If you want to enable an interrupt on e.g. GPIO16, gpio_num should be GPIO_NUM_16 (16);
  *
@@ -567,7 +568,7 @@ esp_err_t gpio_hold_en(gpio_num_t gpio_num);
   * the default level if this function is called. If you dont't want the level changes, the gpio should be configured to
   * a known state before this function is called.
   *  e.g.
-  *     If you hold gpio18 high during Deep-sleep, after the chip is woken up and `gpio_hold_dis` is called, 
+  *     If you hold gpio18 high during Deep-sleep, after the chip is woken up and `gpio_hold_dis` is called,
   *     gpio18 will output low level(because gpio18 is input mode by default). If you don't want this behavior,
   *     you should configure gpio18 as output mode and set it to hight level before calling `gpio_hold_dis`.
   *

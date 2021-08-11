@@ -71,7 +71,6 @@ static bool sta_config_equal(const wifi_config_t& lhs, const wifi_config_t& rhs)
 
 bool WiFiSTAClass::_autoReconnect = true;
 bool WiFiSTAClass::_useStaticIp = false;
-String WiFiSTAClass::_hostname = "esp32-arduino";
 
 static wl_status_t _sta_status = WL_NO_SHIELD;
 static EventGroupHandle_t _sta_status_group = NULL;
@@ -225,8 +224,8 @@ wl_status_t WiFiSTAClass::begin()
 }
 
 /**
- * will force a disconnect and then start reconnecting to AP
- * @return true when successful
+ * will force a disconnect an then start reconnecting to AP
+ * @return ok
  */
 bool WiFiSTAClass::reconnect()
 {
@@ -285,7 +284,7 @@ bool WiFiSTAClass::config(IPAddress local_ip, IPAddress gateway, IPAddress subne
 
     tcpip_adapter_ip_info_t info;
 
-    if(local_ip != (uint32_t)0x00000000 && local_ip != INADDR_NONE){
+    if(local_ip != (uint32_t)0x00000000){
         info.ip.addr = static_cast<uint32_t>(local_ip);
         info.gw.addr = static_cast<uint32_t>(gateway);
         info.netmask.addr = static_cast<uint32_t>(subnet);
@@ -321,13 +320,13 @@ bool WiFiSTAClass::config(IPAddress local_ip, IPAddress gateway, IPAddress subne
     ip_addr_t d;
     d.type = IPADDR_TYPE_V4;
 
-    if(dns1 != (uint32_t)0x00000000 && dns1 != INADDR_NONE) {
+    if(dns1 != (uint32_t)0x00000000) {
         // Set DNS1-Server
         d.u_addr.ip4.addr = static_cast<uint32_t>(dns1);
         dns_setserver(0, &d);
     }
 
-    if(dns2 != (uint32_t)0x00000000 && dns2 != INADDR_NONE) {
+    if(dns2 != (uint32_t)0x00000000) {
         // Set DNS2-Server
         d.u_addr.ip4.addr = static_cast<uint32_t>(dns2);
         dns_setserver(1, &d);
@@ -338,7 +337,7 @@ bool WiFiSTAClass::config(IPAddress local_ip, IPAddress gateway, IPAddress subne
 
 /**
  * is STA interface connected?
- * @return true if STA is connected to an AP
+ * @return true if STA is connected to an AD
  */
 bool WiFiSTAClass::isConnected()
 {
@@ -489,7 +488,7 @@ IPAddress WiFiSTAClass::dnsIP(uint8_t dns_no)
     if(WiFiGenericClass::getMode() == WIFI_MODE_NULL){
         return IPAddress();
     }
-    const ip_addr_t* dns_ip = dns_getserver(dns_no);
+    const ip_addr_t * dns_ip = dns_getserver(dns_no);
     return IPAddress(dns_ip->u_addr.ip4.addr);
 }
 
@@ -637,7 +636,6 @@ const char * WiFiSTAClass::getHostname()
  */
 bool WiFiSTAClass::setHostname(const char * hostname)
 {
-    _hostname = hostname;
     if(WiFiGenericClass::getMode() == WIFI_MODE_NULL){
         return false;
     }
@@ -689,7 +687,13 @@ bool WiFiSTAClass::beginSmartConfig() {
     esp_wifi_disconnect();
 
     esp_err_t err;
+#ifdef ESP_IDF_VERSION_MAJOR
+    esp_event_handler_register(SC_EVENT, ESP_EVENT_ANY_ID, _smartConfigCallback, this);
+    smartconfig_start_config_t conf = SMARTCONFIG_START_CONFIG_DEFAULT();
+    err = esp_smartconfig_start(&conf);
+#else
     err = esp_smartconfig_start(reinterpret_cast<sc_callback_t>(&WiFiSTAClass::_smartConfigCallback), 1);
+#endif
     if (err == ESP_OK) {
         _smartConfigStarted = true;
         _smartConfigDone = false;
@@ -720,18 +724,51 @@ bool WiFiSTAClass::smartConfigDone() {
 }
 
 #if ARDUHAL_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_DEBUG
+const char * sc_type_strings[] = {
+    "ESPTOUCH",
+    "AIRKISS",
+    "ESPTOUCH_AIRKISS"
+};
+#endif
+
+
+#ifdef ESP_IDF_VERSION_MAJOR //todo
+void WiFiSTAClass::_smartConfigCallback(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data){
+    smartconfig_event_t event = (smartconfig_event_t)event_id;
+    switch(event){
+        case SC_EVENT_SCAN_DONE:
+            log_d("smartconfig has finished to scan for APs");
+            break;
+        case SC_EVENT_FOUND_CHANNEL:
+            log_d("smartconfig has found the channel of the target AP");
+            break;
+        case SC_EVENT_GOT_SSID_PSWD:
+        {
+            log_d("smartconfig got the SSID and password");
+            smartconfig_event_got_ssid_pswd_t * data = (smartconfig_event_got_ssid_pswd_t*)event_data;
+            log_d("Type: %s", sc_type_strings[data->type]);
+            log_d("SSID: %s", (const char *)data->ssid);
+            log_d("Password: %s", (const char *)data->password);
+            log_d("Sender IP: " IPSTR, data->cellphone_ip[3], data->cellphone_ip[2], data->cellphone_ip[1], data->cellphone_ip[0]);
+            WiFi.begin((const char *)data->ssid, (const char *)data->password);
+        }
+            break;
+        case SC_EVENT_SEND_ACK_DONE:
+            log_d("smartconfig has sent ACK to the sender");
+            WiFi.stopSmartConfig();
+            break;
+        default: break;
+    }
+}
+#else
+
+#if ARDUHAL_LOG_LEVEL >= ARDUHAL_LOG_LEVEL_DEBUG
 const char * sc_status_strings[] = {
     "WAIT",
     "FIND_CHANNEL",
     "GETTING_SSID_PSWD",
     "LINK",
     "LINK_OVER"
-};
-
-const char * sc_type_strings[] = {
-    "ESPTOUCH",
-    "AIRKISS",
-    "ESPTOUCH_AIRKISS"
 };
 #endif
 
@@ -760,3 +797,4 @@ void WiFiSTAClass::_smartConfigCallback(uint32_t st, void* result) {
         WiFi.stopSmartConfig();
     }
 }
+#endif

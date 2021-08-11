@@ -1,4 +1,4 @@
-// Copyright 2015-2021 Espressif Systems (Shanghai) PTE LTD
+// Copyright 2015-2016 Espressif Systems (Shanghai) PTE LTD
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,11 +21,21 @@
 #include "esp_log.h"
 #include "soc/rtc.h"
 #include "soc/rtc_cntl_reg.h"
-#include "rom/rtc.h"
 #include "soc/apb_ctrl_reg.h"
 #include "soc/efuse_reg.h"
 #include "esp32-hal.h"
 #include "esp32-hal-cpu.h"
+
+#include "esp_system.h"
+#ifdef ESP_IDF_VERSION_MAJOR // IDF 4+
+#if CONFIG_IDF_TARGET_ESP32 // ESP32/PICO-D4
+#include "esp32/rom/rtc.h"
+#else 
+#error Target CONFIG_IDF_TARGET is not supported
+#endif
+#else // ESP32 Before IDF 4.0
+#include "rom/rtc.h"
+#endif
 
 typedef struct apb_change_cb_s {
         struct apb_change_cb_s * prev;
