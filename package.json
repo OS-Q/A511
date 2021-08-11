@@ -1,16 +1,6 @@
 {
-  "name": "A511",
-  "version": "1.0.6",
-  "description": "Arduino Wiring-based Framework for Espressif ESP32 microcontrollers",
-  "keywords": [
-    "OS-Q",
-    "framework",
-    "arduino",
-    "espressif",
-    "esp32"
-  ],
-  "repository": {
-    "type": "git",
+    "name": "F51",
+    "description": "Arduino Wiring-based Framework (ESP32 Core)",
+    "version": "1.0.6",
     "url": "https://github.com/espressif/arduino-esp32"
-  }
 }
